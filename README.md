@@ -19,10 +19,12 @@ Three components:
 
 - **Node.js 20+** and npm
 - **Figma Desktop** app running
-- **[Figma Console MCP Desktop Bridge](https://www.figma.com/community/plugin/figma-console-mcp)** plugin installed and active in your Figma file
+- **Figma Console MCP Desktop Bridge** plugin installed (see setup below)
 - Chrome or Chromium-based browser (for the extension)
 
 ## Setup
+
+### 1. Install dependencies and build
 
 ```bash
 # From the journey-mapper directory
@@ -35,7 +37,18 @@ npm run build:ext
 npm run server
 ```
 
-### Load the Chrome Extension
+### 2. Install the Figma Desktop Bridge plugin
+
+The bridge server communicates with Figma through the Desktop Bridge plugin from [figma-console-mcp](https://github.com/southleft/figma-console-mcp). To install it:
+
+1. Open **Figma Desktop** (the desktop app, not the browser version)
+2. Go to **Plugins > Development > Import plugin from manifest...**
+3. Navigate to `figma-console-mcp/figma-desktop-bridge/manifest.json` inside this repo and select it
+4. Open a Figma file, then run the plugin: **Plugins > Development > Figma Console MCP Desktop Bridge**
+
+The plugin auto-connects via WebSocket (scanning ports 9223-9232). You only need to import it once; it persists in your Development plugins list across sessions. Just run it each time you open a Figma file.
+
+### 3. Load the Chrome Extension
 
 1. Open `chrome://extensions`
 2. Enable "Developer mode"
