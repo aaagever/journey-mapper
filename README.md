@@ -100,6 +100,16 @@ npm run dev:server
 - Side panel shows thumbnails with editable labels and drag-and-drop reorder
 - A content script provides visual capture-flash feedback on the page
 
+### Image Size Constraints
+
+Full-page screenshots and high-DPI displays can produce very large images. Several constraints keep things working end to end:
+
+- **20-tile cap** - full-page capture stops scrolling after 20 viewport-height tiles to avoid memory exhaustion in the browser
+- **1200px max width** - stitched images are downscaled so the output width never exceeds 1200px, regardless of Retina/HiDPI device pixel ratio
+- **4096px max dimension** - Figma's `createImage()` API has a hard limit of 4096px per dimension, so the stitcher further scales down tall pages to fit within this
+- **0.6 JPEG quality** - stitched images use reduced JPEG quality to keep the base64 payload small enough for MCP transport
+- **One frame per MCP call** - during export, each frame is placed in a separate `figma_execute` call rather than all at once, because the base64 image data is inlined directly in the Plugin API code (the Figma plugin sandbox cannot reliably fetch from localhost)
+
 ### Export Flow
 
 1. Extension uploads each screenshot (base64) to the bridge server
