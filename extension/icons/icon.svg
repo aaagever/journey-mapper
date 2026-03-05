@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6C3AE0"/>
+      <stop offset="100%" stop-color="#4318B5"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  <!-- Route path -->
+  <path d="M32 96 Q32 72 52 72 L76 72 Q96 72 96 48" fill="none" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.5"/>
+  <!-- Start dot -->
+  <circle cx="32" cy="96" r="10" fill="white"/>
+  <!-- End dot with camera ring -->
+  <circle cx="96" cy="40" r="14" fill="white" opacity="0.25"/>
+  <circle cx="96" cy="40" r="10" fill="white"/>
+  <!-- Camera lens dot -->
+  <circle cx="96" cy="40" r="4.5" fill="#5626D4"/>
+</svg>

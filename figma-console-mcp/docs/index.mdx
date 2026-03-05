@@ -1,0 +1,212 @@
+---
+title: "Figma Console MCP"
+description: "Your design system as an API. Connect AI to Figma for extraction, creation, and debugging."
+---
+
+<Note>
+**New in v1.11.2** — Connect your Figma design system to AI code generators like Lovable, v0, and Replit via the remote MCP endpoint. The `figma_get_design_system_kit` tool extracts your tokens, component specs, and resolved styles in a single call — so generated code builds with your brand, not generic defaults.
+</Note>
+
+# Your Design System as an API
+
+Design systems shouldn't be static documents locked in a visual tool. They should be **queryable**, **programmable**, and **always in sync** with your codebase.
+
+Figma Console MCP bridges the gap between design and development—giving AI assistants complete access to your Figma files for extraction, creation, and debugging.
+
+<Columns cols={3}>
+  <Card title="Extract" icon="download">
+    Variables, styles, and components as structured data
+  </Card>
+  <Card title="Create" icon="wand-magic-sparkles">
+    Components and designs via natural language
+  </Card>
+  <Card title="Debug" icon="bug">
+    Real-time console logs from your plugins
+  </Card>
+</Columns>
+
+---
+
+## The Problem
+
+Every time a developer opens Figma, eyeballs the padding, and writes `margin: 16px` instead of `var(--spacing-md)`—that's design system debt.
+
+Every design token manually transcribed to CSS, every component spec described in a Slack message, every "just check Figma" that leads to approximation—it compounds.
+
+**What if your design system was queryable?**
+
+```
+"Get the Button component specs and implement it in React with our design tokens."
+```
+
+Real component data. Real token values. Real code that uses your actual design system.
+
+---
+
+## Two Workflows
+
+<Tabs>
+  <Tab title="For Designers">
+    ### Make Your Work Programmable
+
+    Your design system is a product. Developers are your users. Give them an API.
+
+    <Steps>
+      <Step title="Define in Figma">
+        Create tokens and components as you normally would
+      </Step>
+      <Step title="AI Extracts">
+        Design tokens export to CSS, Tailwind, or Sass automatically
+      </Step>
+      <Step title="Stay in Sync">
+        Single source of truth that developers can query directly
+      </Step>
+    </Steps>
+
+    **Result:** Developers stop guessing at values. Design debt decreases. Documentation stays accurate.
+  </Tab>
+  <Tab title="For Developers">
+    ### Query Design Systems Directly
+
+    Stop treating Figma as a screenshot machine.
+
+    <Steps>
+      <Step title="Connect">
+        Add the MCP server to your AI assistant
+      </Step>
+      <Step title="Query">
+        Ask for token values, component specs, or visual references
+      </Step>
+      <Step title="Implement">
+        Get code that uses your actual design system variables
+      </Step>
+    </Steps>
+
+    **Result:** Implement components correctly the first time. Auto-generate token files. Debug plugins without Figma's dev tools.
+  </Tab>
+</Tabs>
+
+---
+
+## Capabilities
+
+<AccordionGroup>
+  <Accordion title="Design System Extraction" icon="palette">
+    Extract variables, styles, and components as structured data. Export to CSS custom properties, Tailwind config, Sass variables, or JSON.
+
+    - `figma_get_design_system_kit` — **Full design system in one call** — tokens, components, styles, visual specs, and resolved values
+    - `figma_get_variables` — Design tokens with multi-format export
+    - `figma_get_styles` — Color, text, and effect styles
+    - `figma_get_component` — Component metadata or reconstruction spec
+    - `figma_get_design_system_summary` — Overview of entire system
+  </Accordion>
+
+  <Accordion title="Plugin Debugging" icon="terminal">
+    Real-time console log capture from your Figma plugins. No more console.log archaeology.
+
+    - `figma_get_console_logs` — Retrieve logs with filtering
+    - `figma_watch_console` — Real-time log streaming
+    - `figma_take_screenshot` — Capture UI state for debugging
+  </Accordion>
+
+  <Accordion title="Design Creation" icon="paintbrush">
+    Execute Figma Plugin API code directly. Build, modify, and organize components programmatically.
+
+    - `figma_execute` — Run any Plugin API code
+    - `figma_arrange_component_set` — Organize variants with labels
+    - `figma_create_variable` — Add design tokens
+    - Plus 20+ node manipulation tools
+  </Accordion>
+
+  <Accordion title="Visual Context" icon="image">
+    AI sees your components visually and as structured data. Implementation guidance that matches the design.
+
+    - `figma_get_component_for_development` — Visual reference + specs
+    - `figma_capture_screenshot` — Node-specific renders
+    - `figma_get_component_image` — Export as PNG/SVG
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Choose Your Setup
+
+<Warning>
+**Important:** Remote Mode is **read-only** with 22 tools. For design creation, development workflows, variable management, and full capabilities (57+ tools), use NPX Setup.
+</Warning>
+
+<Columns cols={2}>
+  <Card title="NPX Setup (Recommended)" icon="bolt" href="/setup#-npx-setup-recommended">
+    **Full capabilities — 57+ tools**
+
+    Create, modify, and develop with AI. Manage variables, instantiate components, and bridge design to code. Requires Node.js and a Figma token.
+  </Card>
+  <Card title="Remote SSE (Read-Only)" icon="cloud" href="/setup#-remote-sse-read-only-exploration">
+    **Quick exploration — 22 tools**
+
+    Zero setup, just paste a URL. Read design data, take screenshots. Cannot create or modify designs. Best for evaluating the tool.
+  </Card>
+</Columns>
+
+### Quick Start: NPX Setup (Recommended)
+
+<Steps>
+  <Step title="Get Figma Token">
+    Visit [figma.com/developers/api#access-tokens](https://www.figma.com/developers/api#access-tokens) and create a Personal Access Token
+  </Step>
+  <Step title="Configure Your MCP Client">
+    Add the server to your MCP client config (Claude Code, Cursor, Windsurf, Claude Desktop, etc.):
+    ```json
+    {
+      "mcpServers": {
+        "figma-console": {
+          "command": "npx",
+          "args": ["-y", "figma-console-mcp@latest"],
+          "env": {
+            "FIGMA_ACCESS_TOKEN": "figd_YOUR_TOKEN_HERE"
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+  <Step title="Connect to Figma Desktop">
+    Install the Desktop Bridge Plugin — one-time import, no debug flags needed. Run it in your Figma file to connect.
+  </Step>
+  <Step title="Restart Your MCP Client">
+    Restart your MCP client to load the new config
+  </Step>
+</Steps>
+
+<Card title="Full Setup Guide" icon="book-open" href="/setup">
+  Detailed instructions for NPX, Local Git, and Remote SSE installation across all AI clients.
+</Card>
+
+---
+
+## Resources
+
+<Columns cols={2}>
+  <Card title="Introduction" icon="circle-info" href="/introduction">
+    New to MCP? Start here.
+  </Card>
+  <Card title="Use Cases" icon="lightbulb" href="/use-cases">
+    Real scenarios and workflows
+  </Card>
+  <Card title="All Tools" icon="wrench" href="/tools">
+    Complete reference for 57+ tools
+  </Card>
+  <Card title="Troubleshooting" icon="circle-question" href="/troubleshooting">
+    Common issues and solutions
+  </Card>
+</Columns>
+
+---
+
+<Note>
+**Open Source** — MIT licensed. Self-host for enterprise requirements or contribute on [GitHub](https://github.com/southleft/figma-console-mcp).
+</Note>
+
+<Tip>
+**Support this project** — Figma Console MCP is free and open source. If it's improved your workflow, consider [sponsoring its development](https://github.com/sponsors/southleft).
+</Tip>

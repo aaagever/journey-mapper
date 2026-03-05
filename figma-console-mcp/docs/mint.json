@@ -1,0 +1,96 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Figma Console MCP",
+  "version": "1.11.2",
+  "theme": "quill",
+  "logo": {
+    "dark": "/logo/light.svg",
+    "light": "/logo/dark.svg",
+    "height": 28
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#0D9488",
+    "light": "#14B8A6",
+    "dark": "#0F766E",
+    "background": {
+      "light": "#FAFAFA",
+      "dark": "#0F0F0F"
+    }
+  },
+  "metadata": {
+    "og:image": "/images/og-image.jpg",
+    "og:title": "Figma Console MCP - Turn Your Design System Into a Living API",
+    "og:description": "The most comprehensive MCP server for Figma. 57+ tools give AI assistants deep access to design tokens, components, variables, and programmatic design creation.",
+    "twitter:card": "summary_large_image",
+    "twitter:image": "/images/og-image.jpg"
+  },
+  "seo": {
+    "indexHiddenPages": false
+  },
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/setup"
+  },
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/southleft/figma-console-mcp"
+    },
+    {
+      "name": "npm",
+      "icon": "npm",
+      "url": "https://www.npmjs.com/package/figma-console-mcp"
+    },
+    {
+      "name": "Changelog",
+      "icon": "clock-rotate-left",
+      "url": "https://github.com/southleft/figma-console-mcp/blob/main/CHANGELOG.md"
+    },
+    {
+      "name": "Sponsor",
+      "icon": "heart",
+      "url": "https://github.com/sponsors/southleft"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "index",
+        "introduction",
+        "setup",
+        "mode-comparison"
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "use-cases",
+        "mcp-apps",
+        "troubleshooting"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "tools",
+        "architecture",
+        "security",
+        "reconstruction-format",
+        "oauth-setup",
+        "self-hosting"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/southleft/figma-console-mcp"
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  },
+  "css": "/custom.css"
+}
+

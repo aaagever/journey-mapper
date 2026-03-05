@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journey Mapper</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <h1>Journey Mapper</h1>
+    <div id="status" class="status status--offline">
+      <span class="status__dot"></span>
+      <span class="status__text">Disconnected</span>
+    </div>
+  </header>
+
+  <main id="steps-container">
+    <div id="empty-state" class="empty-state">
+      <p>No screenshots yet.</p>
+      <p class="hint">Press <kbd>⌥⇧S</kbd> to capture<br>or click the button below.</p>
+    </div>
+  </main>
+
+  <footer>
+    <button id="btn-capture" class="btn btn--secondary">Capture</button>
+    <button id="btn-clear" class="btn btn--ghost">Clear All</button>
+    <button id="btn-save-all" class="btn btn--secondary">Save All</button>
+    <button id="btn-export" class="btn btn--primary" disabled>Export to Figma</button>
+  </footer>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="dist/sidepanel.js"></script>
+</body>
+</html>

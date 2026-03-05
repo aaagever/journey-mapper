@@ -1,0 +1,16 @@
+{
+  "name": "journey-mapper",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "extension",
+    "server"
+  ],
+  "scripts": {
+    "build:ext": "npm run build --workspace=extension",
+    "build:server": "npm run build --workspace=server",
+    "build": "npm run build:ext && npm run build:server",
+    "server": "npm run start --workspace=server",
+    "dev:server": "npm run dev --workspace=server"
+  }
+}
