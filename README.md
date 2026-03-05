@@ -123,10 +123,10 @@ npm run dev:server
 
 | Issue | Fix |
 |-------|-----|
-| Export button disabled | Start the bridge server (`npm run server`) and ensure Figma is connected |
+| Export button disabled | Three possible causes: bridge server is offline (`npm run server`), Figma is not connected, or no screenshots captured yet |
 | "Figma disconnected" | Open Figma Desktop, enable the Desktop Bridge plugin |
 | Arrows not appearing | Check the Figma console for errors (the plugin window) |
-| Images show gray boxes | Image encoding failed; check server logs for base64 decode errors |
+| Images show gray boxes | Image encoding failed; the error details are in the Figma frame name, and also in the bridge server logs |
 | Storage warning | Clear old screenshots before capturing more (10MB Chrome storage limit) |
 | Side panel doesn't open | Some browsers (e.g., Arc) don't support side panels; the extension falls back to a popup window automatically |
 | Full-page capture incomplete | Very tall pages are capped at 20 tiles to avoid memory issues |
