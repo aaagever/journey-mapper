@@ -429,6 +429,13 @@ function createControlPanel(): void {
   panel.appendChild(header);
   panel.appendChild(body);
   shadow.appendChild(panel);
+  // Stop interaction events from propagating to the page.
+  // Without this, clicks inside the JM panel bubble up to the document
+  // and trigger "click outside" handlers on the page (e.g. modal dismiss).
+  for (const eventType of ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup']) {
+    host.addEventListener(eventType, (e) => e.stopPropagation());
+  }
+
   document.body.appendChild(host);
 
   // --- Position: load saved or default to bottom-right ---
