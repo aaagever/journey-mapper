@@ -19,6 +19,7 @@ let autoCaptureToggleEl: HTMLInputElement | null = null;
 let crossTabToggleEl: HTMLInputElement | null = null;
 let crossTabRowEl: HTMLDivElement | null = null;
 let fullPageToggleEl: HTMLInputElement | null = null;
+let branchToggleEl: HTMLInputElement | null = null;
 let statusDotEl: HTMLSpanElement | null = null;
 let statusTextEl: HTMLSpanElement | null = null;
 let saveBtn: HTMLButtonElement | null = null;
@@ -362,6 +363,14 @@ function createControlPanel(): void {
   });
   toggles.appendChild(fpRow);
 
+  // Map branches toggle
+  const { row: brRow, input: brInput } = createToggleRow('Map branches', false);
+  branchToggleEl = brInput;
+  brInput.addEventListener('change', () => {
+    chrome.runtime.sendMessage({ type: 'setBranching', enabled: brInput.checked });
+  });
+  toggles.appendChild(brRow);
+
   body.appendChild(toggles);
 
   // --- Divider ---
@@ -462,6 +471,11 @@ function createControlPanel(): void {
     if (fullPageToggleEl) fullPageToggleEl.checked = fullPageOn;
   });
 
+  chrome.runtime.sendMessage({ type: 'getBranching' }, (response) => {
+    if (!response) return;
+    if (branchToggleEl) branchToggleEl.checked = response.enabled ?? false;
+  });
+
   // --- Health check ---
   checkHealth();
   healthPollInterval = setInterval(checkHealth, 10_000);
@@ -479,6 +493,7 @@ function removeControlPanel(): void {
   crossTabToggleEl = null;
   crossTabRowEl = null;
   fullPageToggleEl = null;
+  branchToggleEl = null;
   statusDotEl = null;
   statusTextEl = null;
   saveBtn = null;
@@ -700,6 +715,9 @@ chrome.runtime.sendMessage({ type: 'getPanelState' }, (response) => {
 
 // Safety net: listen for panelVisible storage changes (catches tabs that miss the message broadcast)
 chrome.storage.onChanged.addListener((changes) => {
+  if ('branchingEnabled' in changes) {
+    if (branchToggleEl) branchToggleEl.checked = changes.branchingEnabled.newValue ?? false;
+  }
   if ('panelVisible' in changes) {
     const newValue = changes.panelVisible.newValue;
     console.log(`[JM-content] storage panelVisible changed to ${newValue}`);

@@ -1,4 +1,6 @@
 import { getFramePosition, FRAME_WIDTH, FRAME_HEIGHT, H_GAP, V_GAP, COLS_PER_ROW } from './layout.js';
+import type { FramePosition } from './layout.js';
+import { TREE_FRAME_WIDTH, TREE_FRAME_HEIGHT } from './tree-layout.js';
 
 export interface StepData {
   id: string;
@@ -7,6 +9,7 @@ export interface StepData {
   pageUrl: string;
   pageTitle: string;
   label: string;
+  parentId?: string | null;
 }
 
 /**
@@ -73,7 +76,93 @@ export function generatePlaceSingleFrame(
     imageFill = { type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash };
   } catch (e) {
     imageError = (e && e.message) ? e.message : String(e);
-    imageError += ' (base64 size: ' + b64.length + ' chars, ~' + Math.round(b64.length * 3/4/1024) + 'KB decoded)';
+    if (typeof b64 !== 'undefined') imageError += ' (base64 size: ' + b64.length + ' chars, ~' + Math.round(b64.length * 3/4/1024) + 'KB decoded)';
+    console.log('[journey-mapper] Image fill error:', imageError);
+    imageFill = { type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } };
+  }
+
+  var frame = figma.createFrame();
+  var frameName = 'Step ' + step.stepNumber + (step.label ? ' | ' + step.label : '') + (step.pageTitle ? ' | ' + step.pageTitle : '');
+  if (imageError) frameName += ' | ERROR: ' + imageError;
+  frame.name = frameName;
+  frame.resize(frameWidth, frameHeight);
+  frame.x = posX;
+  frame.y = posY;
+  frame.fills = [imageFill];
+
+  frame.clipsContent = false;
+
+  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+  var urlLabel = figma.createText();
+  urlLabel.fontName = { family: 'Inter', style: 'Regular' };
+  urlLabel.characters = step.pageUrl;
+  urlLabel.fontSize = 11;
+  urlLabel.x = 8;
+  urlLabel.y = frameHeight - 20;
+  urlLabel.fills = [{ type: 'SOLID', color: { r: 0.85, g: 0.85, b: 0.85 } }];
+  frame.appendChild(urlLabel);
+
+  return imageError ? ('ERROR:' + imageError + '|' + frame.id) : frame.id;
+})()
+`.trim();
+}
+
+/**
+ * Generate Plugin API code that places a single tree-layout frame with its screenshot.
+ * Like generatePlaceSingleFrame but takes an explicit FramePosition and uses tree dimensions.
+ */
+export function generatePlaceTreeFrame(
+  step: StepData,
+  position: FramePosition,
+  imageBase64: string | null,
+): string {
+  const stepJson = JSON.stringify({
+    stepNumber: step.stepNumber,
+    pageUrl: step.pageUrl,
+    pageTitle: step.pageTitle,
+    label: step.label,
+    imageUrl: step.imageUrl,
+  });
+
+  const imageLoadCode = imageBase64
+    ? `
+    var b64 = ${JSON.stringify(imageBase64)};
+    var lookup = new Uint8Array(256);
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    for (var ci = 0; ci < chars.length; ci++) lookup[chars.charCodeAt(ci)] = ci;
+    var len = b64.length;
+    var pad = (b64[len - 1] === '=' ? 1 : 0) + (b64[len - 2] === '=' ? 1 : 0);
+    var byteLen = (len * 3 / 4) - pad;
+    var bytes = new Uint8Array(byteLen);
+    var p = 0;
+    for (var bi = 0; bi < len; bi += 4) {
+      var a = lookup[b64.charCodeAt(bi)];
+      var b = lookup[b64.charCodeAt(bi + 1)];
+      var c = lookup[b64.charCodeAt(bi + 2)];
+      var d = lookup[b64.charCodeAt(bi + 3)];
+      bytes[p++] = (a << 2) | (b >> 4);
+      if (p < byteLen) bytes[p++] = ((b & 15) << 4) | (c >> 2);
+      if (p < byteLen) bytes[p++] = ((c & 3) << 6) | d;
+    }
+    var image = figma.createImage(bytes);`
+    : `var image = await figma.createImageAsync(${JSON.stringify(step.imageUrl)});`;
+
+  return `
+(async () => {
+  var step = ${stepJson};
+  var frameWidth = ${TREE_FRAME_WIDTH};
+  var frameHeight = ${TREE_FRAME_HEIGHT};
+  var posX = ${position.x};
+  var posY = ${position.y};
+
+  var imageFill;
+  var imageError = null;
+  try {
+    ${imageLoadCode}
+    imageFill = { type: 'IMAGE', scaleMode: 'FIT', imageHash: image.hash };
+  } catch (e) {
+    imageError = (e && e.message) ? e.message : String(e);
+    if (typeof b64 !== 'undefined') imageError += ' (base64 size: ' + b64.length + ' chars, ~' + Math.round(b64.length * 3/4/1024) + 'KB decoded)';
     console.log('[journey-mapper] Image fill error:', imageError);
     imageFill = { type: 'SOLID', color: { r: 0.9, g: 0.9, b: 0.9 } };
   }

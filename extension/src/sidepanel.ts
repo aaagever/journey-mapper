@@ -17,7 +17,6 @@ let session: JourneySession = { steps: [], createdAt: Date.now() };
 let serverOnline = false;
 let figmaConnected = false;
 let draggedId: string | null = null;
-
 // --- Toast ---
 
 let toastTimeout: ReturnType<typeof setTimeout>;
@@ -105,7 +104,10 @@ function render() {
 
   session.steps.forEach((step, index) => {
     const card = document.createElement('div');
-    card.className = 'step-card';
+    const isChild = !!step.parentId;
+    let cardClass = 'step-card';
+    if (isChild) cardClass += ' step-card--child';
+    card.className = cardClass;
     card.draggable = true;
     card.dataset.id = step.id;
 
@@ -235,6 +237,7 @@ async function exportToFigma() {
       pageUrl: string;
       pageTitle: string;
       label: string;
+      parentId: string | null;
     }> = [];
 
     for (const step of session.steps) {
@@ -257,6 +260,7 @@ async function exportToFigma() {
         pageUrl: step.pageUrl,
         pageTitle: step.pageTitle,
         label: step.label,
+        parentId: step.parentId ?? null,
       });
     }
 
