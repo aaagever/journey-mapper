@@ -59,7 +59,7 @@ The plugin auto-connects via WebSocket (scanning ports 9223-9232). You only need
 
 1. Start the bridge server: `npm run server`
 2. Open Figma Desktop with a file and the Desktop Bridge plugin active
-3. Click the Journey Mapper extension icon to open the side panel
+3. Click the Journey Mapper extension icon - on Chrome this opens a **side panel**, on browsers that don't support side panels (e.g., Arc) it opens a **popup window** instead
 4. Navigate to the product you want to map in Chrome
 5. Press **Alt+Shift+S** to capture a screenshot (or click "Capture" in the side panel)
 6. Repeat for each step in the journey
