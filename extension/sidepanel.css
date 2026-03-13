@@ -207,6 +207,12 @@ kbd {
   color: #666;
 }
 
+/* Branch child indicator */
+.step-card--child .step-card__number::before {
+  content: '\2514\00a0';
+  color: #22c55e;
+}
+
 /* Footer */
 footer {
   display: flex;

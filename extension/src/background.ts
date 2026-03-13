@@ -7,6 +7,75 @@ let autoCaptureEnabled = false;
 let crossTabCapture = false;
 let fullPageCapture = false;
 let pinnedTabId: number | null = null;
+// --- Auto-branching state ---
+const MAX_BRANCH_DEPTH = 50;
+let branchingEnabled = false;
+let urlToStepId = new Map<string, string>();
+let depthOf = new Map<string, number>();
+let currentParentId: string | null = null;
+
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    if (u.pathname.length > 1 && u.pathname.endsWith('/')) {
+      u.pathname = u.pathname.slice(0, -1);
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+function onBranchNavigation(details: { url: string; frameId: number }) {
+  if (details.frameId !== 0) return;
+  if (!branchingEnabled) return;
+  const norm = normalizeUrl(details.url);
+  const existingStepId = urlToStepId.get(norm);
+  if (existingStepId) {
+    currentParentId = existingStepId;
+  }
+}
+
+function onBranchTabActivated(activeInfo: chrome.tabs.TabActiveInfo) {
+  if (!branchingEnabled) return;
+  chrome.tabs.get(activeInfo.tabId).then((tab) => {
+    if (!tab.url) return;
+    const norm = normalizeUrl(tab.url);
+    const existingStepId = urlToStepId.get(norm);
+    if (existingStepId) {
+      currentParentId = existingStepId;
+    }
+  }).catch(() => {});
+}
+
+function registerBranchTracking() {
+  chrome.webNavigation.onCompleted.addListener(onBranchNavigation);
+  chrome.webNavigation.onReferenceFragmentUpdated.addListener(onBranchNavigation);
+  chrome.webNavigation.onHistoryStateUpdated.addListener(onBranchNavigation);
+  chrome.tabs.onActivated.addListener(onBranchTabActivated);
+}
+
+function unregisterBranchTracking() {
+  chrome.webNavigation.onCompleted.removeListener(onBranchNavigation);
+  chrome.webNavigation.onReferenceFragmentUpdated.removeListener(onBranchNavigation);
+  chrome.webNavigation.onHistoryStateUpdated.removeListener(onBranchNavigation);
+  chrome.tabs.onActivated.removeListener(onBranchTabActivated);
+}
+
+function rebuildBranchMaps(steps: JourneyStep[]) {
+  urlToStepId.clear();
+  depthOf.clear();
+  for (const step of steps) {
+    const norm = normalizeUrl(step.pageUrl);
+    urlToStepId.set(norm, step.id);
+    if (step.parentId) {
+      const parentDepth = depthOf.get(step.parentId) ?? 0;
+      depthOf.set(step.id, parentDepth + 1);
+    } else {
+      depthOf.set(step.id, 0);
+    }
+  }
+}
 
 const MAX_TILES = 20; // Cap to avoid memory issues on very tall pages
 
@@ -383,6 +452,16 @@ async function captureScreenshot(opts?: { refocusPanel?: boolean }): Promise<voi
 
     const session = await getSession();
 
+    let stepParentId: string | null = null;
+    let stepDepth = 0;
+    if (branchingEnabled && currentParentId) {
+      const parentDepth = depthOf.get(currentParentId) ?? 0;
+      if (parentDepth + 1 <= MAX_BRANCH_DEPTH) {
+        stepParentId = currentParentId;
+        stepDepth = parentDepth + 1;
+      }
+    }
+
     const step: JourneyStep = {
       id: generateId(),
       stepNumber: session.steps.length + 1,
@@ -391,10 +470,18 @@ async function captureScreenshot(opts?: { refocusPanel?: boolean }): Promise<voi
       pageTitle: targetTab.title ?? 'Untitled',
       timestamp: Date.now(),
       label: '',
+      parentId: stepParentId,
     };
 
     session.steps.push(step);
     await saveSession(session);
+
+    if (branchingEnabled) {
+      const norm = normalizeUrl(step.pageUrl);
+      urlToStepId.set(norm, step.id);
+      depthOf.set(step.id, stepDepth);
+      currentParentId = step.id;
+    }
 
     // Re-focus the panel: skip in side panel mode (panel lives inside browser window)
     // and skip during auto-capture so browser keeps focus
@@ -490,11 +577,13 @@ function unregisterAutoCapture() {
 }
 
 // Load persisted state
-chrome.storage.local.get(['autoCaptureEnabled', 'crossTabCapture', 'fullPageCapture', 'sidePanelWorks', 'panelVisible'], (result) => {
+chrome.storage.local.get(['autoCaptureEnabled', 'crossTabCapture', 'fullPageCapture', 'branchingEnabled', 'sidePanelWorks', 'panelVisible'], (result) => {
   autoCaptureEnabled = result.autoCaptureEnabled ?? false;
   crossTabCapture = result.crossTabCapture ?? false;
   fullPageCapture = result.fullPageCapture ?? false;
+  branchingEnabled = result.branchingEnabled ?? false;
   if (autoCaptureEnabled) registerAutoCapture();
+  if (branchingEnabled) registerBranchTracking();
   if (result.sidePanelWorks === false) {
     sidePanelVerified = false;
     useSidePanel = false;
@@ -585,7 +674,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
   if (message.type === 'updateSession') {
-    saveSession(message.session).then(() => sendResponse({ ok: true }));
+    saveSession(message.session).then(() => {
+      if (branchingEnabled) {
+        rebuildBranchMaps(message.session.steps);
+      }
+      sendResponse({ ok: true });
+    });
     return true;
   }
   if (message.type === 'getAutoCapture') {
@@ -659,7 +753,25 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     sendResponse({ ok: true });
     return false;
   }
+  if (message.type === 'setBranching') {
+    branchingEnabled = message.enabled;
+    chrome.storage.local.set({ branchingEnabled });
+    if (branchingEnabled) {
+      registerBranchTracking();
+    } else {
+      unregisterBranchTracking();
+    }
+    sendResponse({ ok: true });
+    return false;
+  }
+  if (message.type === 'getBranching') {
+    sendResponse({ enabled: branchingEnabled });
+    return false;
+  }
   if (message.type === 'clearSession') {
+    urlToStepId.clear();
+    depthOf.clear();
+    currentParentId = null;
     const fresh: JourneySession = { steps: [], createdAt: Date.now() };
     saveSession(fresh).then(() => {
       // Best-effort server cleanup (server may be offline; files will be cleaned on next startup)
@@ -753,6 +865,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           pageUrl: string;
           pageTitle: string;
           label: string;
+          parentId: string | null;
         }> = [];
 
         for (const step of session.steps) {
@@ -771,6 +884,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             pageUrl: step.pageUrl,
             pageTitle: step.pageTitle,
             label: step.label,
+            parentId: step.parentId ?? null,
           });
         }
 

@@ -6,6 +6,7 @@ export interface JourneyStep {
   pageTitle: string;
   timestamp: number;
   label: string;
+  parentId?: string | null;
 }
 
 export interface JourneySession {
@@ -31,5 +32,6 @@ export interface ExportRequest {
     pageUrl: string;
     pageTitle: string;
     label: string;
+    parentId?: string | null;
   }>;
 }
