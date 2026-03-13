@@ -1,0 +1,16 @@
+{
+  "name": "figma-console-mcp",
+  "description": "MCP server for accessing Figma plugin console logs, screenshots, and design system manipulation",
+  "projectType": "mcp-server",
+  "language": "typescript",
+  "framework": "node",
+  "codeStyle": {
+    "formatter": "biome",
+    "linter": "biome",
+    "strictMode": true
+  },
+  "testing": {
+    "framework": "jest",
+    "coverageThreshold": 70
+  }
+}
