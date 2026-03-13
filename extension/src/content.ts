@@ -274,13 +274,37 @@ function createControlPanel(): void {
   header.appendChild(closeBtn);
 
   // --- Drag ---
-  header.addEventListener('mousedown', (e: MouseEvent) => {
+  header.addEventListener('pointerdown', (e: PointerEvent) => {
     if ((e.target as HTMLElement).closest('.header__close')) return;
     isDragging = true;
     const rect = host.getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left;
     dragOffsetY = e.clientY - rect.top;
+    header.setPointerCapture(e.pointerId);
     e.preventDefault();
+  });
+
+  header.addEventListener('pointermove', (e: PointerEvent) => {
+    if (!isDragging || !panelHost) return;
+    e.preventDefault();
+    panelHost.style.right = '';
+    panelHost.style.bottom = '';
+    panelHost.style.left = `${e.clientX - dragOffsetX}px`;
+    panelHost.style.top = `${e.clientY - dragOffsetY}px`;
+  });
+
+  header.addEventListener('pointerup', () => {
+    if (!isDragging || !panelHost) return;
+    isDragging = false;
+    clampToViewport();
+    const rect = panelHost.getBoundingClientRect();
+    chrome.storage.local.set({
+      overlayPosition: { x: rect.left, y: rect.top },
+    });
+  });
+
+  header.addEventListener('pointercancel', () => {
+    isDragging = false;
   });
 
   // --- Body ---
@@ -606,31 +630,6 @@ function clampToViewport(): void {
   panelHost.style.left = `${x}px`;
   panelHost.style.top = `${y}px`;
 }
-
-// --- Global drag listeners ---
-
-document.addEventListener('mousemove', (e: MouseEvent) => {
-  if (!isDragging || !panelHost) return;
-  e.preventDefault();
-
-  // Switch to left/top positioning
-  panelHost.style.right = '';
-  panelHost.style.bottom = '';
-  panelHost.style.left = `${e.clientX - dragOffsetX}px`;
-  panelHost.style.top = `${e.clientY - dragOffsetY}px`;
-});
-
-document.addEventListener('mouseup', () => {
-  if (!isDragging || !panelHost) return;
-  isDragging = false;
-  clampToViewport();
-
-  // Save position
-  const rect = panelHost.getBoundingClientRect();
-  chrome.storage.local.set({
-    overlayPosition: { x: rect.left, y: rect.top },
-  });
-});
 
 window.addEventListener('resize', () => {
   if (panelHost) clampToViewport();
